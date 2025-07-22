@@ -68,12 +68,20 @@ pipeline {
             }
         }
         stage('Create GitHub Release') {
-          steps {
-              sh """
-              git tag -a v${params.VERSION} -m "Release ${params.VERSION}"
-              git push https://${GITHUB_TOKEN}@github.com/your-repo.git v${params.VERSION}
-              """
-          }
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'github-credentials', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                        sh """
+                            git config user.email "vicryabenko@gmail.com"
+                            git config user.name "doroGU_Ylitkam"
+                            git add .
+                            git commit -m "Update version to ${params.VERSION}" || echo "No changes to commit"
+                            git tag -a v${params.VERSION} -m "Release ${params.VERSION}"
+                            git push https://${env.GITHUB_TOKEN}@github.com/foxolave/ServiceForStudy01.git v${params.VERSION}
+                        """
+                    }
+                }
+            }
         }
     }
 }
