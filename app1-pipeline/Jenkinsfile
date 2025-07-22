@@ -72,14 +72,12 @@ pipeline {
                     }
                 }
             }
-        }
         stage('Create GitHub Release') {
           steps {
-            sh """
+              sh """
               git tag -a v${params.VERSION} -m "Release ${params.VERSION}"
               git push https://${GITHUB_TOKEN}@github.com/your-repo.git v${params.VERSION}
-            """
+              """
           }
         }
-    }
-}
+                         }
