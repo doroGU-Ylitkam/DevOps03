@@ -7,6 +7,7 @@ pipeline {
         DOCKER_HUB_REPO = 'vicryabenko/devops03-app01'
         APP_REPO_URL = 'https://github.com/foxolave/ServiceForStudy01.git'
         DOCKERFILE_PATH = 'app1-pipeline/Dockerfile'
+         GITHUB_TOKEN = credentials('github-credentials')
     }
     
     stages {
