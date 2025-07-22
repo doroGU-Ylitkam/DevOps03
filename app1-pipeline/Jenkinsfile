@@ -13,7 +13,7 @@ pipeline {
     stages {
         stage('Set Version') {
             steps {
-                sh "mvn versions:set -DnewVersion=${params.VERSION}"
+                sh "mvnw versions:set -DnewVersion=${params.VERSION}"
             }
         }
         
