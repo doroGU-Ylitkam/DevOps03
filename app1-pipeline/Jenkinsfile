@@ -1,1 +1,68 @@
+pipeline {
+    agent any
+    parameters {
+            string(name: 'VERSION', defaultValue: '1.0.0', description: 'Версия приложения')
+    }
+    environment {
+        DOCKER_HUB_REPO = 'vicryabenko/devops03-app01'
+        APP_REPO_URL = 'https://github.com/foxolave/ServiceForStudy01.git'
+        DOCKERFILE_PATH = 'app1-pipeline/Dockerfile'
+    }
+    
+    stages {
+        stage('Set Version') {
+            steps {
+                sh "mvn versions:set -DnewVersion=${params.VERSION}"
+            }
+        }
+      
+        stage('Build JAR') {
+            steps {
+                echo '🔨 Building JAR artifact...'
+                sh './mvnw clean package -DskipTests'
+            }
+            post {
+                success {
+                    archiveArtifacts 'target/*.jar'
+                }
+            }
+        }
 
+        stage('Prepare Docker') {
+            steps {
+                echo '🐳 Preparing Docker environment...'
+                script {
+                    checkout([$class: 'GitSCM', branches: [[name: '*/main']], 
+                              userRemoteConfigs: [[url: 'https://github.com/doroGU-Ylitkam/DevOps03.git']]])
+                    sh "cp ${env.DOCKERFILE_PATH} ."
+                }
+            }
+        }
+        
+        stage('Docker Build & Push') {
+            steps {
+                script {
+                    def imageName = "${env.DOCKER_HUB_REPO}:${env.BUILD_ID}"
+                    
+                    docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
+                        
+                        // Добавляем тег latest
+                        docker.image(imageName).tag('latest')
+                        
+                        // Пушим оба тега
+                        customImage.push()
+                        docker.image(imageName).push('latest')
+                    }
+                }
+            }
+        }
+        stage('Create GitHub Release') {
+          steps {
+            sh """
+              git tag -a v${params.VERSION} -m "Release ${params.VERSION}"
+              git push https://${GITHUB_TOKEN}@github.com/your-repo.git v${params.VERSION}
+            """
+          }
+        }
+    }
+}
