@@ -72,15 +72,6 @@ pipeline {
                     }
                 }
             }
-                        // Добавляем тег latest
-                        docker.image(imageName).tag('latest')
-                        
-                        // Пушим оба тега
-                        customImage.push()
-                        docker.image(imageName).push('latest')
-                    }
-                }
-            }
         }
         stage('Create GitHub Release') {
           steps {
