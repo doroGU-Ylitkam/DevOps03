@@ -13,6 +13,7 @@ pipeline {
     stages {
         stage('Set Version') {
             steps {
+                sh 'chmod +x mvnw'
                 sh "mvnw versions:set -DnewVersion=${params.VERSION}"
             }
         }
@@ -20,7 +21,6 @@ pipeline {
         stage('Build JAR') {
             steps {
                 echo '🔨 Building JAR artifact...'
-                sh 'chmod +x mvnw'
                 sh './mvnw clean package -DskipTests'
             }
             post {
