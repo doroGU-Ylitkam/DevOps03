@@ -16,7 +16,19 @@ pipeline {
                 sh "mvn versions:set -DnewVersion=${params.VERSION}"
             }
         }
-      
+        
+        stage('Test') {
+            steps {
+                echo '🧪 Running tests with Maven...'
+                sh 'chmod +x mvnw'
+                sh './mvnw test'
+            }
+            post {
+                always {
+                    junit '**/target/surefire-reports/*.xml'
+                }
+            }
+        }
         stage('Build JAR') {
             steps {
                 echo '🔨 Building JAR artifact...'
