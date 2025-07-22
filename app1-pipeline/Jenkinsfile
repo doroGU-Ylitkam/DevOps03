@@ -54,12 +54,6 @@ pipeline {
                     def imageName = "${env.DOCKER_HUB_REPO}:${env.BUILD_ID}"
                     
                     docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
-                         stage('Docker Build & Push') {
-            steps {
-                script {
-                    def imageName = "${env.DOCKER_HUB_REPO}:${env.BUILD_ID}"
-                    
-                    docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
                         def customImage = docker.build(imageName, 
                             "--build-arg APP_PORT=${env.APP_PORT} .")
                         
@@ -72,6 +66,7 @@ pipeline {
                     }
                 }
             }
+        }
         stage('Create GitHub Release') {
           steps {
               sh """
