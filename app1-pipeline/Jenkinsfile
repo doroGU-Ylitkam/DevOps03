@@ -1,20 +1,27 @@
 pipeline {
     agent any
     parameters {
-            string(name: 'VERSION', defaultValue: '1.0.0', description: 'Версия приложения')
+        string(name: 'VERSION', defaultValue: '1.0.0', description: 'Версия приложения')
     }
     environment {
         DOCKER_HUB_REPO = 'vicryabenko/devops03-app01'
         APP_REPO_URL = 'https://github.com/foxolave/ServiceForStudy01.git'
         DOCKERFILE_PATH = 'app1-pipeline/Dockerfile'
-         GITHUB_TOKEN = credentials('github-credentials')
+        GITHUB_TOKEN = credentials('github-credentials')
     }
     
     stages {
+        stage('Checkout Application') {
+            steps {
+                echo '📥 Cloning application repository...'
+                git url: env.APP_REPO_URL, branch: 'main'
+            }
+        }
+
         stage('Set Version') {
             steps {
-                sh 'chmod +x mvnw'
-                sh "mvnw versions:set -DnewVersion=${params.VERSION}"
+                sh 'chmod +x mvnw'  // Даем права на выполнение
+                sh "./mvnw versions:set -DnewVersion=${params.VERSION}"
             }
         }
         
