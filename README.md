@@ -30,3 +30,5 @@ Script Path, который необходимо указать в Pipeline
 ```shell
 pullApps/Jenkinsfile
 ```
+_____
+В папке config можно найти конфигурации для приложений
