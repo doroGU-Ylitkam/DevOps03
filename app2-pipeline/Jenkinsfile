@@ -51,7 +51,7 @@ pipeline {
         stage('Docker Build & Push') {
             steps {
                 script {
-                    def imageName = "${env.DOCKER_HUB_REPO}:${env.BUILD_ID}"
+                    def imageName = "${env.DOCKER_HUB_REPO}:${params.VERSION}"
                     
                     docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
                         def customImage = docker.build(imageName, 
