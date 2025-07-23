@@ -1,1 +1,87 @@
+pipeline {
+    agent any
+    parameters {
+        string(name: 'VERSION', defaultValue: '1.0.0', description: 'Версия приложения')
+    }
+    environment {
+        DOCKER_HUB_REPO = 'vicryabenko/devops03-app02'
+        APP_REPO_URL = 'https://github.com/foxolave/ServiceForStudy02.git'
+        DOCKERFILE_PATH = 'app2-pipeline/Dockerfile'
+        GITHUB_TOKEN = credentials('github-credentials')
+    }
+    
+    stages {
+        stage('Checkout Application') {
+            steps {
+                echo '📥 Cloning application repository...'
+                git url: env.APP_REPO_URL, branch: 'main'
+            }
+        }
 
+        stage('Set Version') {
+            steps {
+                sh 'chmod +x mvnw'
+                sh "./mvnw versions:set -DnewVersion=${params.VERSION}"
+            }
+        }
+        
+        stage('Build JAR') {
+            steps {
+                echo '🔨 Building JAR artifact...'
+                sh './mvnw clean package -DskipTests'
+            }
+            post {
+                success {
+                    archiveArtifacts 'target/*.jar'
+                }
+            }
+        }
+
+        stage('Prepare Docker') {
+            steps {
+                echo '🐳 Preparing Docker environment...'
+                script {
+                    checkout([$class: 'GitSCM', branches: [[name: '*/main']], 
+                              userRemoteConfigs: [[url: 'https://github.com/doroGU-Ylitkam/DevOps03.git']]])
+                    sh "cp ${env.DOCKERFILE_PATH} ."
+                }
+            }
+        }
+        
+        stage('Docker Build & Push') {
+            steps {
+                script {
+                    def imageName = "${env.DOCKER_HUB_REPO}:${env.BUILD_ID}"
+                    
+                    docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
+                        def customImage = docker.build(imageName, 
+                            "--build-arg APP_PORT=${env.APP_PORT} .")
+                        
+                        // Добавляем тег latest
+                        docker.image(imageName).tag('latest')
+                        
+                        // Пушим оба тега
+                        customImage.push()
+                        docker.image(imageName).push('latest')
+                    }
+                }
+            }
+        }
+        stage('Create GitHub Release') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'github-credentials', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                        sh """
+                            git config user.email "vicryabenko@gmail.com"
+                            git config user.name "doroGU_Ylitkam"
+                            git add .
+                            git commit -m "Update version to ${params.VERSION}" || echo "No changes to commit"
+                            git tag -a v${params.VERSION} -m "Release ${params.VERSION}"
+                            git push https://${env.GITHUB_TOKEN}@github.com/doroGU-Ylitkam/DevOps01.git v${params.VERSION}
+                        """
+                    }
+                }
+            }
+        }
+    }
+}
