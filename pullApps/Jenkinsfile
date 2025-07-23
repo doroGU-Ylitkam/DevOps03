@@ -1,1 +1,42 @@
-
+pipeline {
+    agent any
+    parameters {
+        string(name: 'VERSION', defaultValue: '1.0.0', description: 'Версия приложений')
+    }
+    environment {
+        APP1_IMAGE = "vicryabenko/devops03-app01"
+        APP2_IMAGE = "vicryabenko/devops03-app02"
+        DOCKER_CREDS = credentials('dockerhub-creds')
+    }
+    stages {
+        stage('Checkout Configs') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Pull Images') {
+            steps {
+                sh """
+                    echo \$DOCKER_CREDS_PSW | docker login -u \$DOCKER_CREDS_USR --password-stdin
+                    docker pull ${APP1_IMAGE}:${params.VERSION}
+                    docker pull ${APP2_IMAGE}:${params.VERSION}
+                """
+            }
+        }
+        stage('Run Containers') {
+            steps {
+                sh """
+                    docker run -d \
+                        --name app1 \
+                        -v ${WORKSPACE}/config/app1-config/application.properties:/config \
+                        ${APP1_IMAGE}:${params.VERSION}
+                    
+                    docker run -d \
+                        --name app2 \
+                        -v ${WORKSPACE}/config/app2-config/application.properties:/config \
+                        ${APP2_IMAGE}:${params.VERSION}
+                """
+            }
+        }
+    }
+}
