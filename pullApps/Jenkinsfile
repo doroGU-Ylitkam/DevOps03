@@ -38,13 +38,13 @@ pipeline {
                             docker run -d \\
                                 --name app1 \\
                                 -v "${WORKSPACE}"/config/app1-config/application.properties:/config \\
-                                -p 8080:8080 \\
+                                -p 8081:8081 \\
                                 ${APP1_IMAGE}:${params.VERSION}
                             
                             docker run -d \\
                                 --name app2 \\
                                 -v "${WORKSPACE}"/config/app2-config/application.properties:/config \\
-                                -p 8081:8081 \\
+                                -p 8082:8082 \\
                                 ${APP2_IMAGE}:${params.VERSION}
                         """
                     } catch (Exception e) {
