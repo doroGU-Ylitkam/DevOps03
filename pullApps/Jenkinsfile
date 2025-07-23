@@ -6,7 +6,7 @@ pipeline {
     environment {
         APP1_IMAGE = "vicryabenko/devops03-app01"
         APP2_IMAGE = "vicryabenko/devops03-app02"
-        DOCKER_CREDS = credentials('dockerhub-creds')
+        DOCKER_CREDS = credentials('docker-hub-credentials')
     }
     stages {
         stage('Checkout Configs') {
